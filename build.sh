@@ -1,29 +1,39 @@
-docker buildx build --platform=linux/arm64 --tag=philiplehmann/mailhog:latest-arm64 .
-docker buildx build --platform=linux/amd64 --tag=philiplehmann/mailhog:latest-amd64 .
-# docker buildx build --platform=linux/riscv64 --tag=philiplehmann/mailhog:latest-riscv64 .
-docker buildx build --platform=linux/ppc64le --tag=philiplehmann/mailhog:latest-ppc64le .
-docker buildx build --platform=linux/s390x --tag=philiplehmann/mailhog:latest-s390x .
-# docker buildx build --platform=linux/386 --tag=philiplehmann/mailhog:latest-386 .
-docker buildx build --platform=linux/arm/v7 --tag=philiplehmann/mailhog:latest-armv7 .
-docker buildx build --platform=linux/arm/v6 --tag=philiplehmann/mailhog:latest-armv6 .
+build_image() {
+  name=$1
+  replaced=${name/\//"-"}
+  docker buildx build --pull --platform=linux/$1 --tag=philiplehmann/mailhog:v1.0.1-$replaced .
+  docker tag philiplehmann/mailhog:v1.0.1-$replaced philiplehmann/mailhog:latest-$replaced
+}
+export -f build_image
 
-docker push philiplehmann/mailhog:latest-arm64
-docker push philiplehmann/mailhog:latest-amd64
-# docker push philiplehmann/mailhog:latest-riscv64
-docker push philiplehmann/mailhog:latest-ppc64le
-docker push philiplehmann/mailhog:latest-s390x
-# docker push philiplehmann/mailhog:latest-386
-docker push philiplehmann/mailhog:latest-armv7
-docker push philiplehmann/mailhog:latest-armv6
+parallel -kj6 build_image ::: arm64 amd64 ppc64le s390x arm/v7 arm/v6
 
+deploy_image() {
+  name=$1
+  replaced=${name/\//"-"}
+  docker push philiplehmann/mailhog:latest-$replaced
+  docker push philiplehmann/mailhog:v1.0.1-$replaced
+}
+export -f deploy_image
 
+parallel -kj6 deploy_image ::: arm64 amd64 ppc64le s390x arm/v7 arm/v6
+
+docker manifest create --amend philiplehmann/mailhog:v1.0.1 \
+                               philiplehmann/mailhog:v1.0.1-arm64 \
+                               philiplehmann/mailhog:v1.0.1-amd64 \
+                               philiplehmann/mailhog:v1.0.1-ppc64le \
+                               philiplehmann/mailhog:v1.0.1-s390x \
+                               philiplehmann/mailhog:v1.0.1-arm-v7 \
+                               philiplehmann/mailhog:v1.0.1-arm-v6
+
+docker manifest push philiplehmann/mailhog:v1.0.1
 
 docker manifest create --amend philiplehmann/mailhog:latest \
-                                                    philiplehmann/mailhog:latest-arm64 \
-                                                    philiplehmann/mailhog:latest-amd64 \
-                                                    philiplehmann/mailhog:latest-ppc64le \
-                                                    philiplehmann/mailhog:latest-s390x \
-                                                    philiplehmann/mailhog:latest-armv7 \
-                                                    philiplehmann/mailhog:latest-armv6
+                               philiplehmann/mailhog:latest-arm64 \
+                               philiplehmann/mailhog:latest-amd64 \
+                               philiplehmann/mailhog:latest-ppc64le \
+                               philiplehmann/mailhog:latest-s390x \
+                               philiplehmann/mailhog:latest-arm-v7 \
+                               philiplehmann/mailhog:latest-arm-v6
 
 docker manifest push philiplehmann/mailhog:latest

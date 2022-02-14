@@ -9,7 +9,7 @@ RUN apt update \
   && apt install -y build-essential git \
   && mkdir -p /root/gocode \
   && export GOPATH=/root/gocode \
-  && go get github.com/mailhog/MailHog
+  && go install github.com/mailhog/MailHog@v1.0.1
 
 FROM debian:stable-slim
 RUN apt update && apt upgrade -y
