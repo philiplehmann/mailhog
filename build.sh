@@ -1,3 +1,5 @@
+docker buildx use default
+
 build_image() {
   name=$1
   replaced=${name/\//"-"}
