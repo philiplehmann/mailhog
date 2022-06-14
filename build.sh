@@ -3,7 +3,7 @@ docker buildx use default
 build_image() {
   name=$1
   replaced=${name/\//"-"}
-  docker buildx build --pull --platform=linux/$1 --tag=philiplehmann/mailhog:v1.0.1-$replaced .
+  docker buildx build --pull --no-cache --platform=linux/$1 --tag=philiplehmann/mailhog:v1.0.1-$replaced .
   docker tag philiplehmann/mailhog:v1.0.1-$replaced philiplehmann/mailhog:latest-$replaced
 }
 export -f build_image
