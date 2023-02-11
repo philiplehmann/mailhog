@@ -33,4 +33,3 @@ jobs:
           push: true
           tags: |
             philiplehmann/mailhog:v1.1.0-beta1
-            philiplehmann/mailhog:latest
