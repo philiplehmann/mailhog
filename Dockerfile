@@ -5,14 +5,14 @@
 FROM golang:latest as builder
 
 # Install MailHog:
-RUN apt update \
-  && apt install -y build-essential git \
+RUN apt-get update \
+  && apt-get install -y build-essential git \
   && mkdir -p /root/gocode \
   && export GOPATH=/root/gocode \
-  && go install github.com/mailhog/MailHog@v1.0.1
+  && go install github.com/mailhog/MailHog@v1.1.0-beta1
 
 FROM debian:stable-slim
-RUN apt update && apt upgrade -y
+RUN apt-get update && apt-get upgrade -y
 RUN useradd -ms /bin/bash -u 1000 mailhog
 
 COPY --from=builder /root/gocode/bin/MailHog /usr/local/bin/

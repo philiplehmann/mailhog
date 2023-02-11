@@ -1,41 +1,7 @@
-docker buildx use default
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-build_image() {
-  name=$1
-  replaced=${name/\//"-"}
-  docker buildx build --pull --no-cache --platform=linux/$1 --tag=philiplehmann/mailhog:v1.0.1-$replaced .
-  docker tag philiplehmann/mailhog:v1.0.1-$replaced philiplehmann/mailhog:latest-$replaced
-}
-export -f build_image
+docker buildx create --platform linux/arm64,linux/amd64,linux/ppc64le,linux/s390x,linux/arm/v7 --name mailhog-builder
+docker buildx use mailhog-builder
+docker buildx build --push --no-cache --platform=linux/arm64,linux/amd64,linux/ppc64le,linux/s390x,linux/arm/v7 --tag=philiplehmann/mailhog:v1.1.0-beta1 .
 
-parallel -kj6 build_image ::: arm64 amd64 ppc64le s390x arm/v7 arm/v6
-
-deploy_image() {
-  name=$1
-  replaced=${name/\//"-"}
-  docker push philiplehmann/mailhog:latest-$replaced
-  docker push philiplehmann/mailhog:v1.0.1-$replaced
-}
-export -f deploy_image
-
-parallel -kj6 deploy_image ::: arm64 amd64 ppc64le s390x arm/v7 arm/v6
-
-docker manifest create --amend philiplehmann/mailhog:v1.0.1 \
-                               philiplehmann/mailhog:v1.0.1-arm64 \
-                               philiplehmann/mailhog:v1.0.1-amd64 \
-                               philiplehmann/mailhog:v1.0.1-ppc64le \
-                               philiplehmann/mailhog:v1.0.1-s390x \
-                               philiplehmann/mailhog:v1.0.1-arm-v7 \
-                               philiplehmann/mailhog:v1.0.1-arm-v6
-
-docker manifest push philiplehmann/mailhog:v1.0.1
-
-docker manifest create --amend philiplehmann/mailhog:latest \
-                               philiplehmann/mailhog:latest-arm64 \
-                               philiplehmann/mailhog:latest-amd64 \
-                               philiplehmann/mailhog:latest-ppc64le \
-                               philiplehmann/mailhog:latest-s390x \
-                               philiplehmann/mailhog:latest-arm-v7 \
-                               philiplehmann/mailhog:latest-arm-v6
-
-docker manifest push philiplehmann/mailhog:latest
+docker buildx imagetools create registry.hub.docker.com/philiplehmann/mailhog:v1.1.0-beta1 --tag registry.hub.docker.com/philiplehmann/mailhog:latest
