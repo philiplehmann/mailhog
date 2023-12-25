@@ -2,7 +2,7 @@
 # MailHog Dockerfile
 #
 
-FROM golang:latest as builder
+FROM golang:1.21-bookworm as builder
 
 # Install MailHog:
 RUN apt update \
